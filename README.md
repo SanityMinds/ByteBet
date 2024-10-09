@@ -31,7 +31,7 @@ A versatile Discord bot that provides users with various features such as an eco
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-repo/discord-economy-bot.git
+   git clone https://github.com/SanityMinds/ByteBet.git
 
 2. Navigate to the repository
 
