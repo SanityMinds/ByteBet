@@ -2652,13 +2652,15 @@ class TaxOptionsView(ui.View):
 
 
 class PayView(View):
-    def __init__(self, interaction: discord.Interaction, user_id: int, target_id: int, amount: int):
+    def __init__(self, interaction: discord.Interaction, user_id: int, target_id: int, amount: int, server_balances, save_balances):
         super().__init__(timeout=60)
         self.interaction = interaction
         self.user_id = str(user_id)
         self.target_id = str(target_id)
         self.amount = amount
         self.server_id = str(interaction.guild.id)
+        self.server_balances = server_balances
+        self.save_balances = save_balances 
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != int(self.user_id):
@@ -2668,15 +2670,13 @@ class PayView(View):
 
     @discord.ui.button(label="Yes", style=discord.ButtonStyle.success)
     async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
-        server_balances = get_server_balances(self.server_id)
+        self.server_balances[self.user_id] = self.server_balances.get(self.user_id, 500) - self.amount
+        self.server_balances[self.target_id] = self.server_balances.get(self.target_id, 500) + self.amount
 
-        server_balances[self.user_id] = server_balances.get(self.user_id, 500) - self.amount
-        server_balances[self.target_id] = server_balances.get(self.target_id, 500) + self.amount
+        self.save_balances()
 
-        save_balances()
-
-        payer_balance = server_balances[self.user_id]
-        recipient_balance = server_balances[self.target_id]
+        payer_balance = self.server_balances[self.user_id]
+        recipient_balance = self.server_balances[self.target_id]
 
         await interaction.response.send_message(
             embed=discord.Embed(
@@ -2713,6 +2713,7 @@ async def pay(interaction: discord.Interaction, user: discord.User, amount: int)
         view=view,
         ephemeral=True
     )
+
 
 
 
